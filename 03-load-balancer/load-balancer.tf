@@ -17,14 +17,15 @@ resource "digitalocean_droplet" "lb-back" {
   region      = "fra1"
   size        = "s-1vcpu-1gb"
   ssh_keys    = ["${digitalocean_ssh_key.default.fingerprint}"]
-  depends_on  = ["digitalocean_ssh_key.default"]  
+  depends_on  = ["digitalocean_ssh_key.default"] 
+  count       = 5 
 
   provisioner "remote-exec" {
     script  = "provision.sh"
 
     connection {
       type        = "ssh"
-      host        = "${digitalocean_droplet.lb-back.ipv4_address}"
+      host        = "${self.ipv4_address}"
       user        = "root"
       private_key = "${file(var.ssh_prv_key_path)}"
     }
@@ -43,5 +44,5 @@ resource "digitalocean_loadbalancer" "load-balancer" {
     target_port     = 80
   }
 
-  droplet_ids = ["${digitalocean_droplet.lb-back.id}"]
+  droplet_ids = "${digitalocean_droplet.lb-back[*].id}"
 }
