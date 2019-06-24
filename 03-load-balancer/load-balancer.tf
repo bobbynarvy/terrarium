@@ -18,6 +18,17 @@ resource "digitalocean_droplet" "lb-back" {
   size        = "s-1vcpu-1gb"
   ssh_keys    = ["${digitalocean_ssh_key.default.fingerprint}"]
   depends_on  = ["digitalocean_ssh_key.default"]  
+
+  provisioner "remote-exec" {
+    script  = "provision.sh"
+
+    connection {
+      type        = "ssh"
+      host        = "${digitalocean_droplet.lb-back.ipv4_address}"
+      user        = "root"
+      private_key = "${file(var.ssh_prv_key_path)}"
+    }
+  }
 }
 
 resource "digitalocean_loadbalancer" "load-balancer" {
