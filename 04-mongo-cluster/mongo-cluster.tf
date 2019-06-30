@@ -40,3 +40,29 @@ resource "digitalocean_droplet" "db" {
     command = "echo ${self.ipv4_address} >> db_ips.txt" 
   }
 }
+
+resource "digitalocean_droplet" "client" {
+  image       = "ubuntu-18-04-x64"
+  name        = "mongo-cluster-client"
+  region      = "fra1"
+  size        = "s-1vcpu-1gb"
+  ssh_keys    = ["${digitalocean_ssh_key.default.fingerprint}"]
+  depends_on  = ["digitalocean_ssh_key.default", "digitalocean_droplet.db"] 
+
+  provisioner "file" {
+    source      = "db_ips.txt"
+    destination = "/tmp/db_ips.txt"
+
+    connection {
+      type        = "ssh"
+      host        = "${self.ipv4_address}"
+      user        = "root"
+      private_key = "${file(var.ssh_prv_key_path)}"
+    }
+  }
+
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "rm db_ips.txt"
+  }
+}
