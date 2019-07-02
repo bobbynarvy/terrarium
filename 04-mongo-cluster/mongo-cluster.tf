@@ -21,10 +21,7 @@ resource "digitalocean_droplet" "db" {
   count       = 3 
 
   provisioner "remote-exec" {
-    inline = [
-      "apt update",
-      "apt install -y mongodb"
-    ]
+    script  = "provision-db-server.sh"
 
     connection {
       type        = "ssh"
